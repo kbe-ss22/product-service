@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  productservice:
+    build: ./
+    container_name: productservice
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./productservice:/app
