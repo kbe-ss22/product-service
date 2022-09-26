@@ -10,6 +10,6 @@ import java.util.List;
 @SpringBootApplication
 public class ProductserviceApplication {
 
-	public static void main(String[] args) {ConfigurableApplicationContext context = SpringApplication.run(ProductserviceApplication.class, args);}
+	public static void main(String[] args) {SpringApplication.run(ProductserviceApplication.class, args);}
 
 }
