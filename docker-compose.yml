@@ -1,9 +1,45 @@
 version: '3.8'
 services:
   productservice:
-    build: ./
     container_name: productservice
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     ports:
-      - "8080:8080"
+      - "6095:6095"
+      - "6085:6085"
+    expose:
+      - 6095
+      - 6085
     volumes:
-      - ./productservice:/app
+      - ./:/app/app
+    restart: unless-stopped
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://warehouse-db:5432/warehouse
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=mysecretpassword
+
+    networks:
+      - rabbitmq_nodejs
+      - product_db_net
+
+networks:
+  rabbitmq_nodejs:
+    name: rabbitmq_nodejs
+    driver: bridge
+  auth-network:
+    driver: bridge
+  warehouse_db_net:
+    name: warehouse_db_net
+    driver: bridge
+  product_db_net:
+    name: product_db_net
+    driver: bridge
+
+                                                                                                                                                                                                                                                                               40.3s
+ # => => # at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1301) ~[na:na]
+ # => => # at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:130) ~[mysql-connector-java-8.0.30.jar:8.0.30]
+ # => => # at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:63) ~[mysql-connector-java-8.0.30.jar:8.0.30]
+
+
+

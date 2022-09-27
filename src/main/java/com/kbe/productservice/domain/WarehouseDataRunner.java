@@ -30,15 +30,14 @@ public class WarehouseDataRunner implements CommandLineRunner {
     // https://reflectoring.io/spring-webclient/
     // Todo check and change for right adress
     public String getDataFromWarehouse(){
-
         WebClient client = WebClient.create();
         WebClient.ResponseSpec responseSpec = client.get()
-                .uri("http://localhost:8082/warehouse")
+                .uri("http://"+"localhost"+":8010/warehouse")
+                //.uri("http://"+"host.docker.internal"+":8080/warehouse")
                 .retrieve();
         String responseBody = responseSpec.bodyToMono(String.class).block();
         //System.out.println("responseBody: "+responseBody);
         return responseBody;
-
     }
 
     public WarehouseRequestData readJsonWithMapper(String json){

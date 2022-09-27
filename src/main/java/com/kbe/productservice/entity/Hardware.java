@@ -1,10 +1,13 @@
 package com.kbe.productservice.entity;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "hardware")
-public class Hardware {
+@Transactional
+public class Hardware implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
