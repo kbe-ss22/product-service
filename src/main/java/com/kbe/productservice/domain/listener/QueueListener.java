@@ -27,88 +27,84 @@ public class QueueListener {
 
     @RabbitListener(queues = RabbitConfig.GETHARDWAREQUEUE)
     public String OnGetHardwareRequest(Currency currency){
-        //System.out.println("GetHardwareRequest received");
-        //hardware aus db holen
-        var hardwareList = hardwareRepository.findAll();
-        List<Hardware> hList = new ArrayList<>();
-        for (Hardware piece: hardwareList) {
-            hList.add(piece);
-            //System.out.println("hardware: " + piece.toString());
+        System.out.println("GetHardwareRequest received");
+
+        var hardwareListFromDB = hardwareRepository.findAll();
+        List<Hardware> hardwareList = new ArrayList<>();
+        for (Hardware hardware: hardwareListFromDB) {
+            hardwareList.add(hardware);
         }
-        //System.out.println("hardware loaded from db: " + hList.size());
-        //currency service nach preis fragen
-        for (Hardware piece: hList) {
-            //System.out.println("name of hardware: " + piece.getName() + ", price of hardware: " + piece.getPrice());
-            CurrencyRequest currencyRequest = new CurrencyRequest(-1, piece.getPrice(), currency);
-            var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.CURRENCYREQUESTEXCHANGE, RabbitConfig.CURRENCYSERVICEROUTINGKEY, currencyRequest);
-            piece.setPrice((Double) value);
+        for (Hardware hardware: hardwareList) {
+            hardware.setPrice(getPriceInCurrency(hardware.getPrice(), currency));
         }
-        //als json zurück geben
-        String output = "";
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            output = mapper.writeValueAsString(hList);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        //System.out.println("price calculation answer call with id: " + requestCall.getId() + " received, with sum: " + requestCall.getPrice());
-        output = "{hardwarelist:" + output + "}";
+
+        String output = getJsonFromHardwareList(hardwareList);
         return output;
     }
 
     @RabbitListener(queues = RabbitConfig.GETPRODUCTSQUEUE)
     public String OnGetProductsRequest(Currency currency){
+        System.out.println("OnGetProductsRequest received");
+
         var products = productRepository.findAll();
         Iterator iterator = products.iterator();
-        List<Product> pList = new ArrayList<>();
+        List<Product> productList = new ArrayList<>();
         while(iterator.hasNext()){
             Product product = (Product) iterator.next();
-            pList.add(product);
-            //System.out.println("product: " + product);
+            productList.add(product);
         }
-        /*
-        for (Product piece: products) {
-
-            pList.add(piece);
-        }
-
-         */
-        //sum of hardware calculation
         for (Product product: products) {
-            List<Hardware> hardware = product.getHardware();
-            //System.out.println("product name: " + product.getName());
-            //System.out.println("product first hardware: " + hardware.get(0).getName());
-            double[] prices = new double[hardware.size()];
-            for (int i = 0; i < hardware.size(); i++) {
-                prices[i] = hardware.get(i).getPrice();
-                CurrencyRequest currencyRequest = new CurrencyRequest(-1, prices[i], currency);
-                var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.CURRENCYREQUESTEXCHANGE, RabbitConfig.CURRENCYSERVICEROUTINGKEY, currencyRequest);
-                prices[i] = (double) value;
-            }
-            PriceRequestCall priceRequest = new PriceRequestCall(-1, prices);
-            var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.PRICEREQUESTEXCHANGE, RabbitConfig.PRICESERVICEROUTINGKEY, priceRequest);
-            product.setPrice((Double) value);
+            product.setPrice(getPriceOfHardwareComponents(product, currency));
+        }
+        for (Product product: products) {
+            product.setPrice(getPriceInCurrency(product.getPrice(), currency));
         }
 
-        //currency service nach preis fragen
-        for (Product piece: products) {
-            CurrencyRequest currencyRequest = new CurrencyRequest(-1, piece.getPrice(), currency);
-            var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.CURRENCYREQUESTEXCHANGE, RabbitConfig.CURRENCYSERVICEROUTINGKEY, currencyRequest);
+        String output = getJsonFromProductList(productList);
+        return output;
+    }
 
-            piece.setPrice((Double) value);
-        }
-        //als json zurück geben
+    private String getJsonFromHardwareList(List<Hardware> hardwareList){
         String output = "";
         ObjectMapper mapper = new ObjectMapper();
         try {
-            output = mapper.writeValueAsString(pList);
+            output = mapper.writeValueAsString(hardwareList);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        //System.out.println("output: " + output);
-        //System.out.println("price calculation answer call with id: " + requestCall.getId() + " received, with sum: " + requestCall.getPrice());
-        output = "{productlist:" + output + "}";
+        output = "{\"hardwarelist\":" + output + "}";
         return output;
+    }
+
+    private String getJsonFromProductList(List<Product> productList){
+        String output = "";
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            output = mapper.writeValueAsString(productList);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        output = "{\"productlist\":" + output + "}";
+        return output;
+    }
+
+    private double getPriceOfHardwareComponents(Product product, Currency currency){
+        List<Hardware> hardware = product.getHardware();
+        double[] prices = new double[hardware.size()];
+        for (int i = 0; i < hardware.size(); i++) {
+            prices[i] = getPriceInCurrency(hardware.get(i).getPrice(), currency);
+        }
+        PriceRequestCall priceRequest = new PriceRequestCall(-1, prices);
+        var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.PRICEREQUESTEXCHANGE, RabbitConfig.PRICESERVICEROUTINGKEY, priceRequest);
+        if(value == null) return -1;
+        return (Double)value;
+    }
+
+    private double getPriceInCurrency(double price, Currency currency){
+        CurrencyRequest currencyRequest = new CurrencyRequest(-1, price, currency);
+        var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.CURRENCYREQUESTEXCHANGE, RabbitConfig.CURRENCYSERVICEROUTINGKEY, currencyRequest);
+        if(value == null) return -1;
+        return (Double)value;
     }
 
     @RabbitListener(queues = RabbitConfig.CREATEPRODUCTQUEUE)
@@ -135,7 +131,7 @@ public class QueueListener {
             Hardware hardware = hardwareRepository.findById(id).get();
             hardwareList.add(hardware);
         }
-        //product erzeugen
+
         Product product = new Product();
         product.setName(requestCall.getName());
         product.setHardware(hardwareList);
