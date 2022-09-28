@@ -16,6 +16,6 @@ public class Product implements Serializable {
     private int id;
     private String name;
     private double price; // should only be set before sending it to api
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     private List<Hardware> hardware = new ArrayList<>();
 }

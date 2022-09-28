@@ -12,5 +12,5 @@ import lombok.ToString;
 public class APICrudRequest {
     private int id;
     private String name;
-    private int[] hardwareIds = new int[10];
+    private int[] hardwareIds = new int[9];
 }

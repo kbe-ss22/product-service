@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class QueueListener {
@@ -109,13 +110,20 @@ public class QueueListener {
 
     @RabbitListener(queues = RabbitConfig.CREATEPRODUCTQUEUE)
     public void OnCreateProductRequest(APICrudRequest requestCall){
-        Product product = getProductFromDB(requestCall);
+        int hardwarecount = requestCall.getHardwareIds().length;
+        if(hardwarecount < 8 || hardwarecount > 9) return;
+        System.out.println(requestCall.getName() + " hardware component count: " + requestCall.getHardwareIds().length);
+        Product product = buildProductFromRequest(requestCall);
+
+        System.out.println("product to save: " + product.getName() + " product price: " + product.getPrice());
+        System.out.println("id: " + product.getId() + " product hardware: " + product.getHardware().size());
+        printHardwareList(product.getHardware());
         productRepository.save(product);
     }
 
     @RabbitListener(queues = RabbitConfig.UPDATEPRODUCTQUEUE)
     public void OnUpdateProductRequest(APICrudRequest requestCall){
-        Product product = getProductFromDB(requestCall);
+        Product product = buildProductFromRequest(requestCall);
         productRepository.deleteById(requestCall.getId());
         productRepository.save(product);
     }
@@ -125,16 +133,33 @@ public class QueueListener {
         productRepository.deleteById(requestCall.getId());
     }
 
-    private Product getProductFromDB(APICrudRequest requestCall){
+    private Product buildProductFromRequest(APICrudRequest requestCall){
         List<Hardware> hardwareList = new ArrayList<>();
         for (int id :requestCall.getHardwareIds()) {
-            Hardware hardware = hardwareRepository.findById(id).get();
+            Optional<Hardware> optionalHardware = hardwareRepository.findById(id);
+            if(optionalHardware.isEmpty()) {
+                continue;
+            }
+            Hardware hardware = optionalHardware.get();
             hardwareList.add(hardware);
         }
-
         Product product = new Product();
         product.setName(requestCall.getName());
         product.setHardware(hardwareList);
+        product.setPrice(0);
         return product;
+    }
+
+    public static void printHardwareList(List<Hardware> hardwareList){
+        for (Hardware hardware: hardwareList) {
+            printHardware(hardware);
+        }
+    }
+
+    public static void printHardware(Hardware hardware){
+        System.out.println("id: " + hardware.getId() + ", name: " + hardware.getName() +
+                ", price: " + hardware.getPrice() + ", type: " + hardware.getType() + ", description: " + hardware.getDescription() +
+                ", stock: " + hardware.getStock());
+
     }
 }

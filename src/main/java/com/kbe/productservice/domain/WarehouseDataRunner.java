@@ -1,6 +1,7 @@
 package com.kbe.productservice.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kbe.productservice.domain.listener.QueueListener;
 import com.kbe.productservice.entity.HardwareRepository;
 import com.kbe.productservice.entity.ProductRepository;
 import com.kbe.productservice.entity.Hardware;
@@ -57,6 +58,9 @@ public class WarehouseDataRunner implements CommandLineRunner {
         }
 
         for (Product product: dataObject.getProductList()) {
+            //System.out.println("product to save: " + product.getName() + " product price: " + product.getPrice());
+            //System.out.println("id: " + product.getId() + " product hardware: " + product.getHardware().size());
+            //QueueListener.printHardwareList(product.getHardware());
             productRepository.save(product);
         }
     }
