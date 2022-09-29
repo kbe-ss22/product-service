@@ -1,6 +1,6 @@
 package com.kbe.productservice.domain.sender;
 
-import com.kbe.productservice.config.ApplicationConfig;
+import com.kbe.productservice.config.RabbitConfig;
 import com.kbe.productservice.entity.*;
 import com.kbe.productservice.entity.Hardware;
 import com.kbe.productservice.entity.Product;
@@ -23,7 +23,7 @@ public class RequestSenderImpl implements RequestSender{
             prices[i] = hardware.get(i).getPrice();
         }
         PriceRequestCall priceRequest = new PriceRequestCall(-1, prices);
-        var value = rabbitTemplate.convertSendAndReceive(ApplicationConfig.PRICEREQUESTEXCHANGE, ApplicationConfig.PRICESERVICEROUTINGKEY, priceRequest);
+        var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.PRICEREQUESTEXCHANGE, RabbitConfig.PRICESERVICEROUTINGKEY, priceRequest);
         if(value == null) return -1;
         return (Double)value;
     }
@@ -31,7 +31,7 @@ public class RequestSenderImpl implements RequestSender{
     @Override
     public double getPriceInCurrency(double price, Currency currency) {
         CurrencyRequest currencyRequest = new CurrencyRequest(-1, price, currency);
-        var value = rabbitTemplate.convertSendAndReceive(ApplicationConfig.CURRENCYREQUESTEXCHANGE, ApplicationConfig.CURRENCYSERVICEROUTINGKEY, currencyRequest);
+        var value = rabbitTemplate.convertSendAndReceive(RabbitConfig.CURRENCYREQUESTEXCHANGE, RabbitConfig.CURRENCYSERVICEROUTINGKEY, currencyRequest);
         if(value == null) return -1;
         return (Double)value;
     }
