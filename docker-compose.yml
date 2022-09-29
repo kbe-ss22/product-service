@@ -36,10 +36,6 @@ networks:
     name: product_db_net
     driver: bridge
 
-                                                                                                                                                                                                                                                                               40.3s
- # => => # at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1301) ~[na:na]
- # => => # at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:130) ~[mysql-connector-java-8.0.30.jar:8.0.30]
- # => => # at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:63) ~[mysql-connector-java-8.0.30.jar:8.0.30]
 
 
 

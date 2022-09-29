@@ -1,5 +1,7 @@
-package com.kbe.productservice.entity;
+package com.kbe.productservice.entity.warehouse;
 
+import com.kbe.productservice.entity.Hardware;
+import com.kbe.productservice.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

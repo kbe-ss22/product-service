@@ -1,4 +1,4 @@
-package com.kbe.productservice.entity;
+package com.kbe.productservice.entity.services;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,10 +9,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class CurrencyRequest {
-
-    private long id;
-    private double price;
-    private Currency currency;
-
+public class APICrudRequest {
+    private int id;
+    private String name;
+    private int[] hardwareIds = new int[9];
 }

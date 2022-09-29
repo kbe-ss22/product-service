@@ -1,4 +1,4 @@
-package com.kbe.productservice.entity;
+package com.kbe.productservice.entity.db;
 
 import com.kbe.productservice.entity.Product;
 import org.springframework.data.repository.CrudRepository;
